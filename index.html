@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School PDF List Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">School List Studio</p>
+          <h1>Upload one Excel file. Export one PDF per school.</h1>
+          <p class="hero-text">
+            Import a spreadsheet with <strong>studentid</strong>,
+            <strong>studentname</strong>, and <strong>school</strong>. The app
+            groups every record by school, randomly assigns students into day
+            batches of 10, and creates a school PDF ordered by day.
+          </p>
+        </div>
+        <div class="hero-card">
+          <p class="card-label">Required columns</p>
+          <ul class="field-list">
+            <li><span>01</span> studentid</li>
+            <li><span>02</span> studentname</li>
+            <li><span>03</span> school</li>
+          </ul>
+          <p class="card-label">Optional in sample</p>
+          <ul class="field-list">
+            <li><span>04</span> day</li>
+          </ul>
+          <a class="sample-link" href="./mock-students.xlsx" download>
+            Download mock Excel file
+          </a>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <section class="panel upload-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Step 1</p>
+            <h2>Choose your Excel file</h2>
+          </div>
+
+          <label class="upload-dropzone" for="excelFile">
+            <input
+              id="excelFile"
+              type="file"
+              accept=".xlsx,.xls"
+              aria-describedby="uploadHint"
+            />
+            <span class="upload-title">Drop file here or click to browse</span>
+            <span class="upload-subtitle" id="uploadHint">
+              Supports `.xlsx` and `.xls`
+            </span>
+          </label>
+
+          <div class="upload-actions">
+            <button id="useMockData" class="secondary-button" type="button">
+              Load built-in sample data
+            </button>
+            <button id="downloadAllPdfs" class="primary-button" type="button" disabled>
+              Download all school PDFs
+            </button>
+          </div>
+
+          <div class="stats-strip" id="statsStrip">
+            <article>
+              <span class="stats-value" id="studentCount">0</span>
+              <span class="stats-label">Students</span>
+            </article>
+            <article>
+              <span class="stats-value" id="schoolCount">0</span>
+              <span class="stats-label">Schools</span>
+            </article>
+            <article>
+              <span class="stats-value" id="pdfCount">0</span>
+              <span class="stats-label">PDFs Ready</span>
+            </article>
+          </div>
+
+          <p id="statusMessage" class="status-message" role="status">
+            Waiting for an Excel file.
+          </p>
+        </section>
+
+        <section class="panel output-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Step 2</p>
+            <h2>Preview school lists ordered by day</h2>
+          </div>
+          <div id="schoolLists" class="school-lists empty-state">
+            Upload a file to generate school rosters with day assignments.
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
