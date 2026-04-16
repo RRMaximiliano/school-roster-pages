@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hy">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>School PDF List Builder</title>
+    <title>Դպրոցական PDF ցուցակների կառուցող</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Armenian:wght@400;500;600;700&family=Noto+Serif+Armenian:wght@500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="../styles.css" />
   </head>
   <body>
     <div class="page-shell">
-      <nav class="language-switch" aria-label="Language switcher">
-        <a class="language-link active" href="./index.html">English</a>
-        <a class="language-link" href="./hy/index.html">Հայերեն</a>
+      <nav class="language-switch" aria-label="Լեզվի ընտրիչ">
+        <a class="language-link" href="../index.html">English</a>
+        <a class="language-link active" href="./index.html">Հայերեն</a>
       </nav>
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">School List Studio</p>
-          <h1>Upload one Excel file. Export one PDF per school.</h1>
+          <p class="eyebrow">Դպրոցական Ցուցակների Ստուդիա</p>
+          <h1>Վերբեռնեք մեկ Excel ֆայլ։ Արտահանեք մեկ PDF յուրաքանչյուր դպրոցի համար։</h1>
           <p class="hero-text">
-            Import a spreadsheet with <strong>studentid</strong>,
-            <strong>studentname</strong>, and <strong>school</strong>. The app
-            groups every record by school, randomly assigns students into day
-            batches of 10, and creates a school PDF ordered by day.
+            Ներմուծեք աղյուսակ, որը պարունակում է <strong>studentid</strong>,
+            <strong>studentname</strong> և <strong>school</strong> սյունակները։
+            Հավելվածը յուրաքանչյուր դպրոցում աշակերտներին պատահականորեն բաժանում
+            է 10-հոգանոց օրերի խմբերի և ստեղծում է ըստ օրերի դասավորված PDF։
           </p>
         </div>
         <div class="hero-card">
-          <p class="card-label">Required columns</p>
+          <p class="card-label">Պարտադիր սյունակներ</p>
           <ul class="field-list">
             <li><span>01</span> studentid</li>
             <li><span>02</span> studentname</li>
             <li><span>03</span> school</li>
           </ul>
-          <p class="card-label">Optional in sample</p>
+          <p class="card-label">Ընտրովի նմուշում</p>
           <ul class="field-list">
             <li><span>04</span> day</li>
           </ul>
-          <a class="sample-link" href="./mock-students.xlsx" download>
-            Download mock Excel file
+          <a class="sample-link" href="../mock-students.xlsx" download>
+            Ներբեռնել նմուշային Excel ֆայլը
           </a>
         </div>
       </header>
@@ -49,8 +49,8 @@
       <main class="main-grid">
         <section class="panel upload-panel">
           <div class="panel-heading">
-            <p class="panel-kicker">Step 1</p>
-            <h2>Choose your Excel file</h2>
+            <p class="panel-kicker">Քայլ 1</p>
+            <h2>Ընտրեք ձեր Excel ֆայլը</h2>
           </div>
 
           <label class="upload-dropzone" for="excelFile">
@@ -60,48 +60,48 @@
               accept=".xlsx,.xls"
               aria-describedby="uploadHint"
             />
-            <span class="upload-title">Drop file here or click to browse</span>
+            <span class="upload-title">Քաշեք ֆայլը այստեղ կամ սեղմեք ընտրելու համար</span>
             <span class="upload-subtitle" id="uploadHint">
-              Supports `.xlsx` and `.xls`
+              Աջակցվում են `.xlsx` և `.xls`
             </span>
           </label>
 
           <div class="upload-actions">
             <button id="useMockData" class="secondary-button" type="button">
-              Load built-in sample data
+              Բեռնել ներկառուցված նմուշային տվյալները
             </button>
             <button id="downloadAllPdfs" class="primary-button" type="button" disabled>
-              Download all school PDFs
+              Ներբեռնել բոլոր դպրոցների PDF-ները
             </button>
           </div>
 
           <div class="stats-strip" id="statsStrip">
             <article>
               <span class="stats-value" id="studentCount">0</span>
-              <span class="stats-label">Students</span>
+              <span class="stats-label">Աշակերտներ</span>
             </article>
             <article>
               <span class="stats-value" id="schoolCount">0</span>
-              <span class="stats-label">Schools</span>
+              <span class="stats-label">Դպրոցներ</span>
             </article>
             <article>
               <span class="stats-value" id="pdfCount">0</span>
-              <span class="stats-label">PDFs Ready</span>
+              <span class="stats-label">Պատրաստ PDF-ներ</span>
             </article>
           </div>
 
           <p id="statusMessage" class="status-message" role="status">
-            Waiting for an Excel file.
+            Սպասում է Excel ֆայլին։
           </p>
         </section>
 
         <section class="panel output-panel">
           <div class="panel-heading">
-            <p class="panel-kicker">Step 2</p>
-            <h2>Preview school lists ordered by day</h2>
+            <p class="panel-kicker">Քայլ 2</p>
+            <h2>Նախադիտել ըստ օրերի դասավորված դպրոցական ցուցակները</h2>
           </div>
           <div id="schoolLists" class="school-lists empty-state">
-            Upload a file to generate school rosters with day assignments.
+            Վերբեռնեք ֆայլ՝ օրերի բաժանումով դպրոցական ցուցակներ ստեղծելու համար։
           </div>
         </section>
       </main>
@@ -110,6 +110,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-    <script src="./app.js"></script>
+    <script src="../app.js"></script>
   </body>
 </html>

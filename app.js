@@ -1,4 +1,6 @@
 const DAY_BATCH_SIZE = 10;
+const language = document.documentElement.lang === "hy" ? "hy" : "en";
+const copy = getCopy(language);
 const sampleRows = createSampleRows();
 
 const state = {
@@ -18,7 +20,7 @@ const pdfCount = document.getElementById("pdfCount");
 
 excelFileInput.addEventListener("change", handleFileSelect);
 useMockDataButton.addEventListener("click", () => {
-  buildSchoolLists(sampleRows, "Built-in sample data");
+  buildSchoolLists(sampleRows, copy.sampleSourceLabel);
 });
 downloadAllPdfsButton.addEventListener("click", downloadAllPdfs);
 
@@ -29,7 +31,7 @@ async function handleFileSelect(event) {
     return;
   }
 
-  setStatus(`Reading ${file.name}...`);
+  setStatus(copy.readingFile(file.name));
 
   try {
     const arrayBuffer = await file.arrayBuffer();
@@ -42,7 +44,7 @@ async function handleFileSelect(event) {
   } catch (error) {
     console.error(error);
     resetOutput();
-    setStatus("Could not read the Excel file. Confirm the file is a valid .xlsx or .xls.");
+    setStatus(copy.invalidFile);
   }
 }
 
@@ -53,9 +55,7 @@ function buildSchoolLists(rawRows, sourceLabel) {
 
   if (!normalizedRows.length) {
     resetOutput();
-    setStatus(
-      "No valid rows found. Your file needs the columns studentid, studentname, and school."
-    );
+    setStatus(copy.noValidRows);
     return;
   }
 
@@ -78,9 +78,7 @@ function buildSchoolLists(rawRows, sourceLabel) {
   renderSchoolCards();
   updateStats();
   downloadAllPdfsButton.disabled = false;
-  setStatus(
-    `Loaded ${normalizedRows.length} students from ${sourceLabel}. Day assignments were created automatically in batches of ${state.dayBatchSize}.`
-  );
+  setStatus(copy.loadedRows(normalizedRows.length, sourceLabel, state.dayBatchSize));
 }
 
 function normalizeRow(row) {
@@ -116,7 +114,7 @@ function renderSchoolCards() {
 
     const tableRows = group.rows
       .map(
-        (row, index) => `
+        (row) => `
           <tr>
             <td>${escapeHtml(row.dayLabel)}</td>
             <td>${escapeHtml(row.studentid)}</td>
@@ -131,19 +129,19 @@ function renderSchoolCards() {
         <div>
           <h3>${escapeHtml(group.school)}</h3>
           <div class="school-meta">
-            <span class="school-tag">${group.rows.length} students</span>
-            <span class="school-tag">${group.dayCount} days</span>
+            <span class="school-tag">${group.rows.length} ${copy.studentsTag}</span>
+            <span class="school-tag">${group.dayCount} ${copy.daysTag}</span>
           </div>
         </div>
-        <button class="download-button" type="button">Download PDF</button>
+        <button class="download-button" type="button">${copy.downloadPdfButton}</button>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Day</th>
-              <th>Student ID</th>
-              <th>Student Name</th>
+              <th>${copy.dayColumn}</th>
+              <th>${copy.studentIdColumn}</th>
+              <th>${copy.studentNameColumn}</th>
             </tr>
           </thead>
           <tbody>${tableRows}</tbody>
@@ -169,7 +167,7 @@ function resetOutput() {
   state.rows = [];
   state.groupedSchools = [];
   schoolListsContainer.className = "school-lists empty-state";
-  schoolListsContainer.textContent = "Upload a file to generate school rosters with day assignments.";
+  schoolListsContainer.textContent = copy.emptyState;
   downloadAllPdfsButton.disabled = true;
   updateStats();
 }
@@ -198,15 +196,11 @@ function downloadSchoolPdf(group) {
   documentPdf.setTextColor(93, 103, 103);
   documentPdf.setFont("helvetica", "normal");
   documentPdf.setFontSize(11);
-  documentPdf.text(
-    `Generated roster • ${group.rows.length} students • ${group.dayCount} days`,
-    40,
-    98
-  );
+  documentPdf.text(copy.pdfSummary(group.rows.length, group.dayCount), 40, 98);
 
   documentPdf.autoTable({
     startY: 118,
-    head: [["Day", "Student ID", "Student Name"]],
+    head: [[copy.dayColumn, copy.studentIdColumn, copy.studentNameColumn]],
     body: group.rows.map((row) => [row.dayLabel, row.studentid, row.studentname]),
     theme: "grid",
     headStyles: {
@@ -214,6 +208,7 @@ function downloadSchoolPdf(group) {
       textColor: [248, 246, 240]
     },
     styles: {
+      font: "helvetica",
       fontSize: 10,
       cellPadding: 8
     },
@@ -232,17 +227,22 @@ function toFilename(value) {
 function createSchoolGroup(school, rows) {
   const hasExplicitDays = rows.every((row) => row.dayLabel);
   const assignedRows = hasExplicitDays
-    ? rows.map((row) => ({
-        ...row,
-        dayNumber: extractDayNumber(row.dayLabel)
-      }))
+    ? rows.map((row) => {
+        const dayNumber = extractDayNumber(row.dayLabel);
+
+        return {
+          ...row,
+          dayNumber,
+          dayLabel: formatDayLabel(dayNumber)
+        };
+      })
     : shuffleRows(rows.map((row) => ({ ...row }))).map((row, index) => {
         const dayNumber = Math.floor(index / state.dayBatchSize) + 1;
 
         return {
           ...row,
           dayNumber,
-          dayLabel: `Day ${dayNumber}`
+          dayLabel: formatDayLabel(dayNumber)
         };
       });
 
@@ -293,7 +293,7 @@ function createSampleRows() {
 
     return shuffleRows(schoolRows).map((row, index) => ({
       ...row,
-      dayLabel: `Day ${Math.floor(index / DAY_BATCH_SIZE) + 1}`
+      dayLabel: formatDayLabel(Math.floor(index / DAY_BATCH_SIZE) + 1)
     }));
   });
 }
@@ -304,12 +304,16 @@ function normalizeDayLabel(value) {
   }
 
   const dayNumber = extractDayNumber(value);
-  return dayNumber ? `Day ${dayNumber}` : "";
+  return dayNumber ? formatDayLabel(dayNumber) : "";
 }
 
 function extractDayNumber(value) {
   const match = String(value).match(/\d+/);
   return match ? Number(match[0]) : Number.NaN;
+}
+
+function formatDayLabel(dayNumber) {
+  return copy.dayLabel(dayNumber);
 }
 
 function setStatus(message) {
@@ -323,4 +327,51 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function getCopy(activeLanguage) {
+  const copyByLanguage = {
+    en: {
+      sampleSourceLabel: "Built-in sample data",
+      invalidFile: "Could not read the Excel file. Confirm the file is a valid .xlsx or .xls.",
+      noValidRows:
+        "No valid rows found. Your file needs the columns studentid, studentname, and school.",
+      emptyState: "Upload a file to generate school rosters with day assignments.",
+      downloadPdfButton: "Download PDF",
+      studentsTag: "students",
+      daysTag: "days",
+      dayColumn: "Day",
+      studentIdColumn: "Student ID",
+      studentNameColumn: "Student Name",
+      dayLabel: (dayNumber) => `Day ${dayNumber}`,
+      readingFile: (fileName) => `Reading ${fileName}...`,
+      loadedRows: (rowCount, sourceLabel, batchSize) =>
+        `Loaded ${rowCount} students from ${sourceLabel}. Day assignments were created automatically in batches of ${batchSize}.`,
+      pdfSummary: (rowCount, dayCount) =>
+        `Generated roster • ${rowCount} students • ${dayCount} days`
+    },
+    hy: {
+      sampleSourceLabel: "Ներկառուցված նմուշային տվյալներ",
+      invalidFile:
+        "Չհաջողվեց կարդալ Excel ֆայլը։ Համոզվեք, որ ֆայլը վավեր `.xlsx` կամ `.xls` է։",
+      noValidRows:
+        "Վավեր տողեր չեն գտնվել։ Ձեր ֆայլը պետք է ունենա studentid, studentname և school սյունակները։",
+      emptyState:
+        "Վերբեռնեք ֆայլ՝ օրերի բաժանումով դպրոցական ցուցակներ ստեղծելու համար։",
+      downloadPdfButton: "Ներբեռնել PDF",
+      studentsTag: "աշակերտ",
+      daysTag: "օր",
+      dayColumn: "Օր",
+      studentIdColumn: "Աշակերտի ID",
+      studentNameColumn: "Աշակերտի անուն",
+      dayLabel: (dayNumber) => `Օր ${dayNumber}`,
+      readingFile: (fileName) => `Ընթերցվում է ${fileName} ֆայլը...`,
+      loadedRows: (rowCount, sourceLabel, batchSize) =>
+        `Բեռնվել է ${rowCount} աշակերտ ${sourceLabel} աղբյուրից։ Օրերի բաժանումը ստեղծվել է ինքնաշխատ՝ յուրաքանչյուր ${batchSize} աշակերտից մեկ խմբով։`,
+      pdfSummary: (rowCount, dayCount) =>
+        `Ստեղծված ցուցակ • ${rowCount} աշակերտ • ${dayCount} օր`
+    }
+  };
+
+  return copyByLanguage[activeLanguage];
 }

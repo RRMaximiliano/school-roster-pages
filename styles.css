@@ -24,6 +24,10 @@ body {
     linear-gradient(135deg, #efe5d4 0%, #f7f2ea 42%, #ece2cf 100%);
 }
 
+html[lang="hy"] body {
+  font-family: "Noto Sans Armenian", "IBM Plex Sans", sans-serif;
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -40,6 +44,29 @@ body::before {
   width: min(1220px, calc(100% - 32px));
   margin: 0 auto;
   padding: 36px 0 64px;
+}
+
+.language-switch {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.language-link {
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(23, 33, 33, 0.12);
+  background: rgba(255, 253, 248, 0.72);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.94rem;
+}
+
+.language-link.active {
+  background: linear-gradient(135deg, var(--ink), var(--accent));
+  border-color: transparent;
+  color: #f8f6f0;
 }
 
 .hero {
@@ -94,6 +121,15 @@ h2,
   font-family: "Fraunces", serif;
   line-height: 1.05;
   letter-spacing: -0.03em;
+}
+
+html[lang="hy"] h1,
+html[lang="hy"] h2,
+html[lang="hy"] .school-card h3,
+html[lang="hy"] .upload-title {
+  font-family: "Noto Serif Armenian", "Noto Sans Armenian", serif;
+  letter-spacing: 0;
+  line-height: 1.15;
 }
 
 h1 {
@@ -371,6 +407,15 @@ tr + tr td {
 }
 
 @media (max-width: 640px) {
+  .language-switch {
+    justify-content: stretch;
+  }
+
+  .language-link {
+    flex: 1;
+    text-align: center;
+  }
+
   .hero-copy,
   .hero-card,
   .panel {

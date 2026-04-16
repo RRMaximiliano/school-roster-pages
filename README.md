@@ -2,6 +2,11 @@
 
 Static website for uploading an Excel file of students, grouping them by school, assigning students to day batches of 10, and exporting one PDF per school ordered by day.
 
+The site includes two versions:
+
+- English at `index.html`
+- Armenian at `hy/index.html`
+
 ## Expected spreadsheet columns
 
 - `studentid`
