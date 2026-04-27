@@ -1,5 +1,4 @@
 const DAY_BATCH_SIZE = 10;
-const APP_VERSION = "2026-04-26 / f9c336b";
 const language = document.documentElement.lang === "hy" ? "hy" : "en";
 const copy = getCopy(language);
 const sampleRows = createSampleRows();
@@ -18,11 +17,6 @@ const statusMessage = document.getElementById("statusMessage");
 const studentCount = document.getElementById("studentCount");
 const schoolCount = document.getElementById("schoolCount");
 const pdfCount = document.getElementById("pdfCount");
-const versionText = document.getElementById("versionText");
-
-if (versionText) {
-  versionText.textContent = copy.versionLabel(APP_VERSION);
-}
 
 excelFileInput.addEventListener("change", handleFileSelect);
 useMockDataButton.addEventListener("click", () => {
@@ -406,7 +400,6 @@ function getCopy(activeLanguage) {
       dayColumn: "Day",
       studentIdColumn: "Student ID",
       studentNameColumn: "Student Name",
-      versionLabel: (version) => `Version ${version}`,
       dayLabel: (dayNumber) => `Day ${dayNumber}`,
       readingFile: (fileName) => `Reading ${fileName}...`,
       loadedRows: (rowCount, sourceLabel, batchSize) =>
@@ -428,7 +421,6 @@ function getCopy(activeLanguage) {
       dayColumn: "Օր",
       studentIdColumn: "Աշակերտի ID",
       studentNameColumn: "Աշակերտի անուն",
-      versionLabel: (version) => `Տարբերակ ${version}`,
       dayLabel: (dayNumber) => `Օր ${dayNumber}`,
       readingFile: (fileName) => `Ընթերցվում է ${fileName} ֆայլը...`,
       loadedRows: (rowCount, sourceLabel, batchSize) =>
