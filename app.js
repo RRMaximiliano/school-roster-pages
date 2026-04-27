@@ -182,36 +182,64 @@ async function downloadAllPdfs() {
 }
 
 async function downloadSchoolPdf(group) {
-  const pdfElement = createPdfElement(group);
-  document.body.appendChild(pdfElement);
+  const { jsPDF } = window.jspdf;
+  const documentPdf = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "letter"
+  });
+  const useUnicodeFont = needsUnicodePdf(group);
 
-  try {
-    await html2pdf()
-      .set({
-        filename: `${toFilename(group.school)}-students.pdf`,
-        margin: [18, 18, 18, 18],
-        pagebreak: { mode: ["css", "legacy"] },
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff"
-        },
-        jsPDF: {
-          unit: "pt",
-          format: "letter",
-          orientation: "portrait"
-        }
-      })
-      .from(pdfElement)
-      .save();
-  } finally {
-    pdfElement.remove();
+  if (useUnicodeFont) {
+    await ensurePdfFont(documentPdf);
   }
+
+  documentPdf.setFillColor(11, 110, 79);
+  documentPdf.rect(0, 0, documentPdf.internal.pageSize.getWidth(), 74, "F");
+  documentPdf.setTextColor(248, 246, 240);
+  documentPdf.setFont(useUnicodeFont ? embeddedPdfFont.family : "helvetica", "normal");
+  documentPdf.setFontSize(24);
+  documentPdf.text(group.school, 40, 45);
+
+  documentPdf.setTextColor(93, 103, 103);
+  documentPdf.setFont(useUnicodeFont ? embeddedPdfFont.family : "helvetica", "normal");
+  documentPdf.setFontSize(11);
+  documentPdf.text(copy.pdfSummary(group.rows.length, group.dayCount), 40, 98);
+
+  documentPdf.autoTable({
+    startY: 118,
+    head: [[copy.dayColumn, copy.studentIdColumn, copy.studentNameColumn]],
+    body: group.rows.map((row) => [row.dayLabel, row.studentid, row.studentname]),
+    theme: "grid",
+    headStyles: {
+      font: useUnicodeFont ? embeddedPdfFont.family : "helvetica",
+      fontStyle: "normal",
+      fillColor: [23, 33, 33],
+      textColor: [248, 246, 240]
+    },
+    styles: {
+      font: useUnicodeFont ? embeddedPdfFont.family : "helvetica",
+      fontStyle: "normal",
+      fontSize: 10,
+      cellPadding: 8
+    },
+    alternateRowStyles: {
+      fillColor: [247, 242, 234]
+    }
+  });
+
+  documentPdf.save(`${toFilename(group.school)}-students.pdf`);
 }
 
 function toFilename(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const normalized = String(value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return normalized || `school-${simpleHash(value)}`;
 }
 
 function createSchoolGroup(school, rows) {
@@ -288,6 +316,33 @@ function createSampleRows() {
   });
 }
 
+function needsUnicodePdf(group) {
+  if (language === "hy") {
+    return true;
+  }
+
+  if (containsArmenianText(group.school)) {
+    return true;
+  }
+
+  return group.rows.some((row) => containsArmenianText(row.studentname) || containsArmenianText(row.dayLabel));
+}
+
+function containsArmenianText(value) {
+  return /[\u0531-\u058F]/.test(String(value));
+}
+
+async function ensurePdfFont(documentPdf) {
+  if (!embeddedPdfFont) {
+    throw new Error("Embedded Armenian PDF font is missing.");
+  }
+
+  if (!documentPdf.getFontList()[embeddedPdfFont.family]) {
+    documentPdf.addFileToVFS(embeddedPdfFont.fileName, embeddedPdfFont.base64);
+    documentPdf.addFont(embeddedPdfFont.fileName, embeddedPdfFont.family, "normal");
+  }
+}
+
 function normalizeDayLabel(value) {
   if (!value) {
     return "";
@@ -308,44 +363,10 @@ function wait(milliseconds) {
   });
 }
 
-function createPdfElement(group) {
-  const wrapper = document.createElement("section");
-  wrapper.className = `pdf-render-root ${language === "hy" ? "lang-hy" : "lang-en"}`;
-
-  const bodyRows = group.rows
-    .map(
-      (row) => `
-        <tr>
-          <td>${escapeHtml(row.dayLabel)}</td>
-          <td>${escapeHtml(row.studentid)}</td>
-          <td>${escapeHtml(row.studentname)}</td>
-        </tr>
-      `
-    )
-    .join("");
-
-  wrapper.innerHTML = `
-    <article class="pdf-sheet">
-      <header class="pdf-header">
-        <h1 class="pdf-school-name">${escapeHtml(group.school)}</h1>
-      </header>
-      <div class="pdf-summary">${escapeHtml(copy.pdfSummary(group.rows.length, group.dayCount))}</div>
-      <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>${escapeHtml(copy.dayColumn)}</th>
-            <th>${escapeHtml(copy.studentIdColumn)}</th>
-            <th>${escapeHtml(copy.studentNameColumn)}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${bodyRows}
-        </tbody>
-      </table>
-    </article>
-  `;
-
-  return wrapper;
+function simpleHash(value) {
+  return Array.from(String(value)).reduce((hash, character) => {
+    return (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }, 7);
 }
 
 function formatDayLabel(dayNumber) {

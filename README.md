@@ -7,7 +7,7 @@ The site includes two versions:
 - English at `index.html`
 - Armenian at `hy/index.html`
 
-The PDF export is rendered from browser HTML instead of direct jsPDF table text, so Armenian, Latin, digits, and punctuation match the on-screen rendering for uploaded files too.
+The Armenian PDF export uses an embedded mixed-script subset font inside jsPDF, so Armenian, Latin, digits, and punctuation in uploaded school names render in the generated PDF.
 
 ## Expected spreadsheet columns
 
