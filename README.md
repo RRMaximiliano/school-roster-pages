@@ -7,7 +7,7 @@ The site includes two versions:
 - English at `index.html`
 - Armenian at `hy/index.html`
 
-The Armenian PDF export bundles an embedded subset font with Armenian characters plus Latin letters, digits, and punctuation, so uploaded school names like `ք. Երևանի թիվ 188 հմ/դ` render correctly even when the site is opened locally from disk.
+The PDF export is rendered from browser HTML instead of direct jsPDF table text, so Armenian, Latin, digits, and punctuation match the on-screen rendering for uploaded files too.
 
 ## Expected spreadsheet columns
 

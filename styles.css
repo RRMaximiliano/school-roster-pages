@@ -335,6 +335,78 @@ button:disabled {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 253, 248, 0.94));
 }
 
+.pdf-render-root {
+  position: fixed;
+  left: -200vw;
+  top: 0;
+  width: 780px;
+  padding: 0;
+  background: #ffffff;
+  color: #172121;
+}
+
+.pdf-render-root.lang-hy {
+  font-family: "Noto Sans Armenian", "IBM Plex Sans", sans-serif;
+}
+
+.pdf-render-root.lang-en {
+  font-family: "IBM Plex Sans", sans-serif;
+}
+
+.pdf-sheet {
+  width: 744px;
+  background: #ffffff;
+}
+
+.pdf-header {
+  padding: 26px 24px 34px;
+  background: #0b6e4f;
+  color: #f8f6f0;
+}
+
+.pdf-school-name {
+  margin: 0;
+  font-family: inherit;
+  font-size: 2rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.pdf-summary {
+  padding: 22px 24px 18px;
+  color: #56616b;
+  font-size: 1rem;
+}
+
+.pdf-table {
+  width: calc(100% - 48px);
+  margin: 0 24px 24px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.pdf-table th,
+.pdf-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid rgba(23, 33, 33, 0.16);
+  word-break: break-word;
+}
+
+.pdf-table th {
+  background: #172121;
+  color: #f8f6f0;
+  font-size: 0.95rem;
+}
+
+.pdf-table tr {
+  break-inside: avoid;
+}
+
+.pdf-table tbody tr:nth-child(odd) td {
+  background: #f0e9de;
+}
+
 .school-card-header {
   display: flex;
   flex-wrap: wrap;
