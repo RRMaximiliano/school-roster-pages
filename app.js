@@ -2,6 +2,7 @@ const DAY_BATCH_SIZE = 10;
 const language = document.documentElement.lang === "hy" ? "hy" : "en";
 const copy = getCopy(language);
 const sampleRows = createSampleRows();
+const embeddedPdfFont = window.ArmenianPdfFont || null;
 
 const state = {
   rows: [],
@@ -152,7 +153,7 @@ function renderSchoolCards() {
     `;
 
     card.querySelector("button").addEventListener("click", () => {
-      downloadSchoolPdf(group);
+      downloadSchoolPdf(group).catch(handlePdfError);
     });
 
     schoolListsContainer.appendChild(card);
@@ -363,6 +364,11 @@ function wait(milliseconds) {
   });
 }
 
+function handlePdfError(error) {
+  console.error(error);
+  setStatus(copy.pdfError);
+}
+
 function simpleHash(value) {
   return Array.from(String(value)).reduce((hash, character) => {
     return (hash * 31 + character.charCodeAt(0)) >>> 0;
@@ -404,6 +410,8 @@ function getCopy(activeLanguage) {
       readingFile: (fileName) => `Reading ${fileName}...`,
       loadedRows: (rowCount, sourceLabel, batchSize) =>
         `Loaded ${rowCount} students from ${sourceLabel}. Day assignments were created automatically in batches of ${batchSize}.`,
+      pdfError:
+        "Could not generate the PDF for this file. Please refresh the page and try again.",
       pdfSummary: (rowCount, dayCount) =>
         `Generated roster • ${rowCount} students • ${dayCount} days`
     },
@@ -425,6 +433,8 @@ function getCopy(activeLanguage) {
       readingFile: (fileName) => `Ընթերցվում է ${fileName} ֆայլը...`,
       loadedRows: (rowCount, sourceLabel, batchSize) =>
         `Բեռնվել է ${rowCount} աշակերտ ${sourceLabel} աղբյուրից։ Օրերի բաժանումը ստեղծվել է ինքնաշխատ՝ յուրաքանչյուր ${batchSize} աշակերտից մեկ խմբով։`,
+      pdfError:
+        "Չհաջողվեց ստեղծել PDF-ը այս ֆայլի համար։ Թարմացրեք էջը և փորձեք կրկին։",
       pdfSummary: (rowCount, dayCount) =>
         `Ստեղծված ցուցակ • ${rowCount} աշակերտ • ${dayCount} օր`
     },
