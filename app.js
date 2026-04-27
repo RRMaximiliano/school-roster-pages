@@ -2,6 +2,11 @@ const DAY_BATCH_SIZE = 10;
 const language = document.documentElement.lang === "hy" ? "hy" : "en";
 const copy = getCopy(language);
 const sampleRows = createSampleRows();
+const PDF_FONT_FAMILY = "NotoSansArmenian";
+const PDF_FONT_FILE = "NotoSansArmenian-Regular.ttf";
+const pdfFontAssetPath =
+  language === "hy" ? `../assets/${PDF_FONT_FILE}` : `./assets/${PDF_FONT_FILE}`;
+let pdfFontBase64Promise;
 
 const state = {
   rows: [],
@@ -22,7 +27,9 @@ excelFileInput.addEventListener("change", handleFileSelect);
 useMockDataButton.addEventListener("click", () => {
   buildSchoolLists(sampleRows, copy.sampleSourceLabel);
 });
-downloadAllPdfsButton.addEventListener("click", downloadAllPdfs);
+downloadAllPdfsButton.addEventListener("click", () => {
+  downloadAllPdfs();
+});
 
 async function handleFileSelect(event) {
   const [file] = event.target.files || [];
@@ -172,29 +179,35 @@ function resetOutput() {
   updateStats();
 }
 
-function downloadAllPdfs() {
-  state.groupedSchools.forEach((group, index) => {
-    window.setTimeout(() => downloadSchoolPdf(group), index * 250);
-  });
+async function downloadAllPdfs() {
+  for (const group of state.groupedSchools) {
+    await downloadSchoolPdf(group);
+    await wait(250);
+  }
 }
 
-function downloadSchoolPdf(group) {
+async function downloadSchoolPdf(group) {
   const { jsPDF } = window.jspdf;
   const documentPdf = new jsPDF({
     orientation: "portrait",
     unit: "pt",
     format: "letter"
   });
+  const useUnicodeFont = needsUnicodePdf(group);
+
+  if (useUnicodeFont) {
+    await ensurePdfFont(documentPdf);
+  }
 
   documentPdf.setFillColor(11, 110, 79);
   documentPdf.rect(0, 0, documentPdf.internal.pageSize.getWidth(), 74, "F");
   documentPdf.setTextColor(248, 246, 240);
-  documentPdf.setFont("helvetica", "bold");
+  documentPdf.setFont(useUnicodeFont ? PDF_FONT_FAMILY : "helvetica", "bold");
   documentPdf.setFontSize(24);
   documentPdf.text(group.school, 40, 45);
 
   documentPdf.setTextColor(93, 103, 103);
-  documentPdf.setFont("helvetica", "normal");
+  documentPdf.setFont(useUnicodeFont ? PDF_FONT_FAMILY : "helvetica", "normal");
   documentPdf.setFontSize(11);
   documentPdf.text(copy.pdfSummary(group.rows.length, group.dayCount), 40, 98);
 
@@ -204,11 +217,12 @@ function downloadSchoolPdf(group) {
     body: group.rows.map((row) => [row.dayLabel, row.studentid, row.studentname]),
     theme: "grid",
     headStyles: {
+      font: useUnicodeFont ? PDF_FONT_FAMILY : "helvetica",
       fillColor: [23, 33, 33],
       textColor: [248, 246, 240]
     },
     styles: {
-      font: "helvetica",
+      font: useUnicodeFont ? PDF_FONT_FAMILY : "helvetica",
       fontSize: 10,
       cellPadding: 8
     },
@@ -298,6 +312,59 @@ function createSampleRows() {
   });
 }
 
+function needsUnicodePdf(group) {
+  if (language === "hy") {
+    return true;
+  }
+
+  if (containsArmenianText(group.school)) {
+    return true;
+  }
+
+  return group.rows.some((row) => containsArmenianText(row.studentname) || containsArmenianText(row.dayLabel));
+}
+
+function containsArmenianText(value) {
+  return /[\u0531-\u058F]/.test(String(value));
+}
+
+async function ensurePdfFont(documentPdf) {
+  const fontBase64 = await getPdfFontBase64();
+
+  documentPdf.addFileToVFS(PDF_FONT_FILE, fontBase64);
+  documentPdf.addFont(PDF_FONT_FILE, PDF_FONT_FAMILY, "normal");
+  documentPdf.addFont(PDF_FONT_FILE, PDF_FONT_FAMILY, "bold");
+}
+
+function getPdfFontBase64() {
+  if (!pdfFontBase64Promise) {
+    pdfFontBase64Promise = fetch(pdfFontAssetPath)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Font fetch failed: ${response.status}`);
+        }
+
+        return response.arrayBuffer();
+      })
+      .then(arrayBufferToBase64);
+  }
+
+  return pdfFontBase64Promise;
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
+}
+
 function normalizeDayLabel(value) {
   if (!value) {
     return "";
@@ -310,6 +377,12 @@ function normalizeDayLabel(value) {
 function extractDayNumber(value) {
   const match = String(value).match(/\d+/);
   return match ? Number(match[0]) : Number.NaN;
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
 }
 
 function formatDayLabel(dayNumber) {

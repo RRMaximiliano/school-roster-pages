@@ -29,6 +29,8 @@ jobs:
         run: |
           mkdir dist
           cp index.html styles.css app.js mock-students.xlsx dist/
+          mkdir -p dist/assets
+          cp assets/NotoSansArmenian-Regular.ttf dist/assets/
           mkdir -p dist/hy
           cp hy/index.html dist/hy/
 

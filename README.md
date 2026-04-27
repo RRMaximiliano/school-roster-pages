@@ -7,6 +7,8 @@ The site includes two versions:
 - English at `index.html`
 - Armenian at `hy/index.html`
 
+The Armenian PDF export bundles `Noto Sans Armenian` so Armenian school names, day labels, and table text render correctly in generated PDFs.
+
 ## Expected spreadsheet columns
 
 - `studentid`
