@@ -28,7 +28,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir dist
-          cp index.html styles.css app.js mock-students.xlsx dist/
+          cp index.html styles.css app.js armenian-pdf-font.js mock-students.xlsx dist/
           mkdir -p dist/assets
           cp assets/NotoSansArmenian-Regular.ttf dist/assets/
           mkdir -p dist/hy

@@ -2,11 +2,7 @@ const DAY_BATCH_SIZE = 10;
 const language = document.documentElement.lang === "hy" ? "hy" : "en";
 const copy = getCopy(language);
 const sampleRows = createSampleRows();
-const PDF_FONT_FAMILY = "NotoSansArmenian";
-const PDF_FONT_FILE = "NotoSansArmenian-Regular.ttf";
-const pdfFontAssetPath =
-  language === "hy" ? `../assets/${PDF_FONT_FILE}` : `./assets/${PDF_FONT_FILE}`;
-let pdfFontBase64Promise;
+const embeddedPdfFont = window.ArmenianPdfFont || null;
 
 const state = {
   rows: [],
@@ -202,12 +198,12 @@ async function downloadSchoolPdf(group) {
   documentPdf.setFillColor(11, 110, 79);
   documentPdf.rect(0, 0, documentPdf.internal.pageSize.getWidth(), 74, "F");
   documentPdf.setTextColor(248, 246, 240);
-  documentPdf.setFont(useUnicodeFont ? PDF_FONT_FAMILY : "helvetica", "bold");
+  documentPdf.setFont(useUnicodeFont ? embeddedPdfFont.family : "helvetica", "normal");
   documentPdf.setFontSize(24);
   documentPdf.text(group.school, 40, 45);
 
   documentPdf.setTextColor(93, 103, 103);
-  documentPdf.setFont(useUnicodeFont ? PDF_FONT_FAMILY : "helvetica", "normal");
+  documentPdf.setFont(useUnicodeFont ? embeddedPdfFont.family : "helvetica", "normal");
   documentPdf.setFontSize(11);
   documentPdf.text(copy.pdfSummary(group.rows.length, group.dayCount), 40, 98);
 
@@ -217,12 +213,13 @@ async function downloadSchoolPdf(group) {
     body: group.rows.map((row) => [row.dayLabel, row.studentid, row.studentname]),
     theme: "grid",
     headStyles: {
-      font: useUnicodeFont ? PDF_FONT_FAMILY : "helvetica",
+      font: useUnicodeFont ? embeddedPdfFont.family : "helvetica",
+      fontStyle: "normal",
       fillColor: [23, 33, 33],
       textColor: [248, 246, 240]
     },
     styles: {
-      font: useUnicodeFont ? PDF_FONT_FAMILY : "helvetica",
+      font: useUnicodeFont ? embeddedPdfFont.family : "helvetica",
       fontSize: 10,
       cellPadding: 8
     },
@@ -329,40 +326,14 @@ function containsArmenianText(value) {
 }
 
 async function ensurePdfFont(documentPdf) {
-  const fontBase64 = await getPdfFontBase64();
-
-  documentPdf.addFileToVFS(PDF_FONT_FILE, fontBase64);
-  documentPdf.addFont(PDF_FONT_FILE, PDF_FONT_FAMILY, "normal");
-  documentPdf.addFont(PDF_FONT_FILE, PDF_FONT_FAMILY, "bold");
-}
-
-function getPdfFontBase64() {
-  if (!pdfFontBase64Promise) {
-    pdfFontBase64Promise = fetch(pdfFontAssetPath)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Font fetch failed: ${response.status}`);
-        }
-
-        return response.arrayBuffer();
-      })
-      .then(arrayBufferToBase64);
+  if (!embeddedPdfFont) {
+    throw new Error("Embedded Armenian PDF font is missing.");
   }
 
-  return pdfFontBase64Promise;
-}
-
-function arrayBufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-  let binary = "";
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
+  if (!documentPdf.getFontList()[embeddedPdfFont.family]) {
+    documentPdf.addFileToVFS(embeddedPdfFont.fileName, embeddedPdfFont.base64);
+    documentPdf.addFont(embeddedPdfFont.fileName, embeddedPdfFont.family, "normal");
   }
-
-  return btoa(binary);
 }
 
 function normalizeDayLabel(value) {
